@@ -23,7 +23,7 @@ export default function History() {
 
   const { data: completedCycles, isLoading } = useQuery({
     queryKey: ['cycles', 'completed'],
-    queryFn: () => Cycle.filter({ status: 'completed' }, '-created_date'),
+    queryFn: () => Cycle.filter({ status: 'completed' }, '-created_at'),
     initialData: [],
   });
 
