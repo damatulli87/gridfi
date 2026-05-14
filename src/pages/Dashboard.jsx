@@ -30,6 +30,7 @@ export default function Dashboard() {
   const cycleIntervalRef = useRef(null);
   const lastRecordedErcotTimestamp = useRef(null);
   const lastRecordedLmp = useRef(null);
+  const lastAutoRecordedAt = useRef(null); // wall-clock time of last auto-record
   // Always-current ref so fetchErcot never has a stale closure over activeCycle
   const activeCycleRef = useRef(null);
   useEffect(() => { activeCycleRef.current = activeCycle; }, [activeCycle]);
@@ -58,9 +59,15 @@ export default function Dashboard() {
           }
           const timestampChanged = newTimestamp && newTimestamp !== lastRecordedErcotTimestamp.current;
           const priceChanged = newLmp !== lastRecordedLmp.current;
-          if (cycle.status === 'active' && (timestampChanged || priceChanged)) {
+          // Enforce 4-min cooldown between auto-records — ERCOT page can refresh timestamp
+          // multiple times per 5-min settlement interval, causing spurious duplicates
+          const MIN_AUTO_INTERVAL_MS = 4 * 60 * 1000;
+          const cooldownOk = !lastAutoRecordedAt.current ||
+            (Date.now() - lastAutoRecordedAt.current) >= MIN_AUTO_INTERVAL_MS;
+          if (cycle.status === 'active' && (timestampChanged || priceChanged) && cooldownOk) {
             lastRecordedErcotTimestamp.current = newTimestamp;
             lastRecordedLmp.current = newLmp;
+            lastAutoRecordedAt.current = Date.now();
             const intervals = [...(cycle.intervals || [])];
             const num = intervals.length + 1;
             const energy = cycle.power_mw / 12;
