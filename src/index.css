@@ -86,8 +86,5 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: var(--font-sans);
-    background-image: url('/bg-towers.svg');
-    background-repeat: repeat;
-    background-size: 220px 280px;
   }
 }
