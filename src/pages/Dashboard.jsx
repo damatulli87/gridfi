@@ -27,9 +27,7 @@ export default function Dashboard() {
   const [ercotLoading, setErcotLoading] = useState(false);
   const intervalRef = useRef(null);
   const cycleIntervalRef = useRef(null);
-  const lastRecordedErcotTimestamp = useRef(null);
-  const lastRecordedLmp = useRef(null);
-  const lastAutoRecordedAt = useRef(null); // wall-clock time of last auto-record
+  const lastAutoRecordedAt = useRef(null); // wall-clock time of last auto-record (in-session guard)
   // Always-current ref so fetchErcot never has a stale closure over activeCycle
   const activeCycleRef = useRef(null);
   useEffect(() => { activeCycleRef.current = activeCycle; }, [activeCycle]);
@@ -52,20 +50,18 @@ export default function Dashboard() {
         if (node) {
           const newLmp = node.lmp;
           setCurrentLmp(newLmp);
-          // Seed lastRecordedLmp on first fetch
-          if (lastRecordedLmp.current === null) {
-            lastRecordedLmp.current = newLmp;
-          }
-          const timestampChanged = newTimestamp && newTimestamp !== lastRecordedErcotTimestamp.current;
-          const priceChanged = newLmp !== lastRecordedLmp.current;
-          // Enforce 4-min cooldown between auto-records — ERCOT page can refresh timestamp
-          // multiple times per 5-min settlement interval, causing spurious duplicates
-          const MIN_AUTO_INTERVAL_MS = 4 * 60 * 1000;
-          const cooldownOk = !lastAutoRecordedAt.current ||
-            (Date.now() - lastAutoRecordedAt.current) >= MIN_AUTO_INTERVAL_MS;
-          if (cycle.status === 'active' && (timestampChanged || priceChanged) && cooldownOk) {
-            lastRecordedErcotTimestamp.current = newTimestamp;
-            lastRecordedLmp.current = newLmp;
+          if (cycle.status === 'active') {
+            const existingIntervals = cycle.intervals || [];
+            const lastInterval = existingIntervals[existingIntervals.length - 1];
+            const MIN_AUTO_INTERVAL_MS = 4 * 60 * 1000;
+            // DB timestamp survives page refreshes; ref catches in-session parallel fetches
+            const msSinceDB = lastInterval
+              ? Date.now() - new Date(lastInterval.timestamp).getTime()
+              : Infinity;
+            const msSinceRef = lastAutoRecordedAt.current
+              ? Date.now() - lastAutoRecordedAt.current
+              : Infinity;
+            if (Math.min(msSinceDB, msSinceRef) >= MIN_AUTO_INTERVAL_MS) {
             lastAutoRecordedAt.current = Date.now();
             const intervals = [...(cycle.intervals || [])];
             const num = intervals.length + 1;
@@ -93,6 +89,7 @@ export default function Dashboard() {
             activeCycleRef.current = updated;
             saveCycleMutation.mutate({ id: cycle.id, data: { intervals } });
             toast.success(`Interval #${num} recorded: $${newLmp.toFixed(2)}/MWh`);
+            }
           }
         }
       }
