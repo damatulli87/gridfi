@@ -132,7 +132,8 @@ export default function Dashboard() {
     mutationFn: ({ id, data }) => Cycle.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] });
-    }
+    },
+    onError: (e) => toast.error(`Save failed: ${e.message}`)
   });
 
   const createCycleMutation = useMutation({
@@ -141,7 +142,8 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['cycles'] });
       setActiveCycle(created);
       toast.success('Cycle started');
-    }
+    },
+    onError: (e) => toast.error(`Failed to start cycle: ${e.message}`)
   });
 
   const recordInterval = useCallback(() => {
