@@ -75,8 +75,7 @@ export default function History() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ArrowLeft className="w-4 h-4" /></Button>
           </Link>
-          <img src="/gridfi-logo.png" alt="GridFi" className="h-8 w-auto" />
-          <p className="text-[10px] text-muted-foreground leading-none self-end mb-0.5">Cycle History</p>
+          <img src="/gridfi-logo.png" alt="GridFi" className="h-12 w-auto" />
           <Badge variant="secondary" className="text-xs">{completedCycles.length} cycles</Badge>
         </div>
       </header>

@@ -330,8 +330,7 @@ export default function Dashboard() {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/gridfi-logo.png" alt="GridFi" className="h-9 w-auto" />
-            <p className="text-[10px] text-muted-foreground leading-none self-end mb-0.5">ERCOT LMP Tracker</p>
+            <img src="/gridfi-logo.png" alt="GridFi" className="h-14 w-auto" />
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={ercotError ? 'destructive' : 'secondary'} className="text-xs gap-1">
