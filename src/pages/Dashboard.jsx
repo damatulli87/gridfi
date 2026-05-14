@@ -183,6 +183,10 @@ export default function Dashboard() {
     intervals.push(newInterval);
     const updated = { ...activeCycle, intervals };
     setActiveCycle(updated);
+    activeCycleRef.current = updated;
+    // Sync refs so the next auto-fetch doesn't double-record
+    lastRecordedLmp.current = lmp;
+    lastAutoRecordedAt.current = Date.now();
     saveCycleMutation.mutate({ id: activeCycle.id, data: { intervals } });
     toast.success(`Interval #${num} recorded: $${lmp.toFixed(2)}/MWh`);
   }, [activeCycle, currentLmp]);
@@ -253,6 +257,9 @@ export default function Dashboard() {
 
     const updated = { ...activeCycle, intervals };
     setActiveCycle(updated);
+    activeCycleRef.current = updated;
+    lastRecordedLmp.current = lmp;
+    lastAutoRecordedAt.current = Date.now();
     saveCycleMutation.mutate({ id: activeCycle.id, data: { intervals } });
     toast.success('Manual interval added');
   };
