@@ -1,0 +1,101 @@
+{
+  "name": "Cycle",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Cycle name"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Cycle date"
+    },
+    "node": {
+      "type": "string",
+      "description": "ERCOT settlement point name"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "charging",
+        "discharging"
+      ],
+      "description": "Charging or discharging"
+    },
+    "power_mw": {
+      "type": "number",
+      "description": "Power command in MW"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "active",
+      "description": "Cycle status"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "ISO timestamp of cycle start"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "ISO timestamp of cycle end"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    },
+    "intervals": {
+      "type": "array",
+      "description": "Array of interval records",
+      "items": {
+        "type": "object",
+        "properties": {
+          "interval_num": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "node": {
+            "type": "string"
+          },
+          "lmp": {
+            "type": "number"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "power_mw": {
+            "type": "number"
+          },
+          "duration_min": {
+            "type": "number"
+          },
+          "energy_mwh": {
+            "type": "number"
+          },
+          "cost_revenue": {
+            "type": "number"
+          },
+          "running_total": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "node",
+    "mode",
+    "power_mw"
+  ]
+}
