@@ -1,15 +1,12 @@
 import { supabase } from './supabaseClient';
 
-// Drop-in replacement for base44.entities.Cycle.*
-// Cycles are stored in Supabase with intervals as a JSONB column.
 export const Cycle = {
   async filter(where = {}, sort = null) {
+    // RLS owner_only policy handles user filtering automatically
     let query = supabase.from('cycles').select('*');
-
     Object.entries(where).forEach(([key, value]) => {
       query = query.eq(key, value);
     });
-
     if (sort) {
       const desc = sort.startsWith('-');
       const col = desc ? sort.slice(1) : sort;
@@ -17,16 +14,16 @@ export const Cycle = {
     } else {
       query = query.order('created_at', { ascending: false });
     }
-
     const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
 
   async create(data) {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data: created, error } = await supabase
       .from('cycles')
-      .insert({ ...data, intervals: data.intervals || [] })
+      .insert({ ...data, intervals: data.intervals || [], user_id: user?.id })
       .select()
       .single();
     if (error) throw error;

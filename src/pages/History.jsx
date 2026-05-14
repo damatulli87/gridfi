@@ -6,17 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Download, Trash2, Copy, Eye, Clock
+  ArrowLeft, Download, Trash2, Copy, Eye, Clock, LogOut
 } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom';
 import { exportCycleToExcel } from '@/lib/excelExport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import IntervalTable from '@/components/dashboard/IntervalTable';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function History() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [viewCycle, setViewCycle] = React.useState(null);
 
   const { data: completedCycles, isLoading } = useQuery({
@@ -77,6 +79,12 @@ export default function History() {
           </Link>
           <img src="/gridfi-logo.png" alt="GridFi" className="h-12 w-auto" />
           <Badge variant="secondary" className="text-xs">{completedCycles.length} cycles</Badge>
+          <div className="ml-auto flex items-center gap-2">
+            {user && <span className="text-[10px] text-muted-foreground hidden sm:block">{user.email}</span>}
+            <Button variant="ghost" size="sm" onClick={logout} className="h-8 w-8 p-0" title="Sign out">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 

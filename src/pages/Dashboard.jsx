@@ -15,9 +15,12 @@ import LmpChart from '@/components/dashboard/LmpChart';
 import IntervalTable from '@/components/dashboard/IntervalTable';
 import { addRecent, initDarkMode, setDarkMode, getDarkMode } from '@/lib/ercotStore';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import { LogOut } from 'lucide-react';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
+  const { user, logout } = useAuth();
   const [dark, setDark] = useState(initDarkMode());
   const [activeCycle, setActiveCycle] = useState(null);
   const [currentLmp, setCurrentLmp] = useState(null);
@@ -350,6 +353,14 @@ export default function Dashboard() {
             <Button variant="ghost" size="sm" onClick={toggleDark} className="h-8 w-8 p-0">
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
+            {user && (
+              <div className="flex items-center gap-2 pl-2 border-l">
+                <span className="text-[10px] text-muted-foreground hidden sm:block">{user.email}</span>
+                <Button variant="ghost" size="sm" onClick={logout} className="h-8 w-8 p-0" title="Sign out">
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>
