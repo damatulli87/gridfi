@@ -42,9 +42,8 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-2">
-          <img src="/gridfi-logo.png" alt="GridFi" className="h-12 w-auto" />
-          <p className="text-sm text-muted-foreground">ERCOT LMP Tracker</p>
+        <div className="flex flex-col items-center">
+          <img src="/gridfi-logo.png" alt="GridFi" className="h-20 w-auto" />
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
