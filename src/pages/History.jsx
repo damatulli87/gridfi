@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, Download, Trash2, Copy, Eye, Zap, Clock 
+import {
+  ArrowLeft, Download, Trash2, Copy, Eye, Clock
 } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom';
 import { exportCycleToExcel } from '@/lib/excelExport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import IntervalTable from '@/components/dashboard/IntervalTable';
 import { toast } from 'sonner';
+import GridFiLogo from '@/components/GridFiLogo';
 
 export default function History() {
   const queryClient = useQueryClient();
@@ -75,8 +76,11 @@ export default function History() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ArrowLeft className="w-4 h-4" /></Button>
           </Link>
-          <Zap className="w-5 h-5 text-primary" />
-          <h1 className="text-lg font-bold">Cycle History</h1>
+          <GridFiLogo size={28} />
+          <div>
+            <h1 className="text-lg font-bold leading-none">GridFi</h1>
+            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Cycle History</p>
+          </div>
           <Badge variant="secondary" className="text-xs">{completedCycles.length} cycles</Badge>
         </div>
       </header>
