@@ -13,7 +13,6 @@ import { exportCycleToExcel } from '@/lib/excelExport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import IntervalTable from '@/components/dashboard/IntervalTable';
 import { toast } from 'sonner';
-import GridFiLogo from '@/components/GridFiLogo';
 
 export default function History() {
   const queryClient = useQueryClient();
@@ -76,11 +75,8 @@ export default function History() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><ArrowLeft className="w-4 h-4" /></Button>
           </Link>
-          <GridFiLogo size={28} />
-          <div>
-            <h1 className="text-lg font-bold leading-none">GridFi</h1>
-            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Cycle History</p>
-          </div>
+          <img src="/gridfi-logo.png" alt="GridFi" className="h-8 w-auto" />
+          <p className="text-[10px] text-muted-foreground leading-none self-end mb-0.5">Cycle History</p>
           <Badge variant="secondary" className="text-xs">{completedCycles.length} cycles</Badge>
         </div>
       </header>

@@ -15,7 +15,6 @@ import LmpChart from '@/components/dashboard/LmpChart';
 import IntervalTable from '@/components/dashboard/IntervalTable';
 import { addRecent, initDarkMode, setDarkMode, getDarkMode } from '@/lib/ercotStore';
 import { Link } from 'react-router-dom';
-import GridFiLogo from '@/components/GridFiLogo';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -331,11 +330,8 @@ export default function Dashboard() {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <GridFiLogo size={32} />
-            <div>
-              <h1 className="text-lg font-bold tracking-tight leading-none">GridFi</h1>
-              <p className="text-[10px] text-muted-foreground leading-none mt-0.5">ERCOT LMP Tracker</p>
-            </div>
+            <img src="/gridfi-logo.png" alt="GridFi" className="h-9 w-auto" />
+            <p className="text-[10px] text-muted-foreground leading-none self-end mb-0.5">ERCOT LMP Tracker</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={ercotError ? 'destructive' : 'secondary'} className="text-xs gap-1">
