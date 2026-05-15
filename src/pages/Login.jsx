@@ -33,7 +33,7 @@ export default function Login() {
         setMode('signin');
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(mode === 'signin' ? 'Invalid email or password.' : (err.message || 'Could not create account.'));
     } finally {
       setLoading(false);
     }
