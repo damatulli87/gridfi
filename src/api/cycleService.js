@@ -31,10 +31,12 @@ export const Cycle = {
   },
 
   async update(id, data) {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data: updated, error } = await supabase
       .from('cycles')
       .update(data)
       .eq('id', id)
+      .eq('user_id', user?.id)
       .select()
       .single();
     if (error) throw error;
@@ -42,7 +44,12 @@ export const Cycle = {
   },
 
   async delete(id) {
-    const { error } = await supabase.from('cycles').delete().eq('id', id);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from('cycles')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user?.id);
     if (error) throw error;
   },
 };
