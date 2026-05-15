@@ -1,10 +1,9 @@
 -- GridFi ERCOT LMP Tracker — Supabase schema
--- Run this in the Supabase SQL Editor after creating your project.
+-- Reference only — database is already fully migrated to Phase 2.
+-- Do NOT re-run this file against the live database.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- cycles table
--- Intervals are stored as a JSONB array so the frontend can read/write them
--- in a single round-trip, matching the original Base44 entity structure.
 -- ─────────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS cycles (
   id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -19,6 +18,7 @@ CREATE TABLE IF NOT EXISTS cycles (
   end_time    TIMESTAMPTZ,
   notes       TEXT,
   intervals   JSONB       NOT NULL DEFAULT '[]'::jsonb,
+  user_id     UUID        REFERENCES auth.users(id),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -40,26 +40,14 @@ CREATE TRIGGER cycles_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- Row Level Security
--- Phase 1 (no auth): public read/write — any request can access all rows.
--- Phase 2 (auth enabled): uncomment the user-scoped policy and disable the
---   public one after wiring up Supabase Auth in AuthContext.jsx.
+-- Row Level Security — Phase 2 (owner-only, auth required)
 -- ─────────────────────────────────────────────────────────────────────────────
 ALTER TABLE cycles ENABLE ROW LEVEL SECURITY;
 
--- PHASE 1 — open access (no login required)
-CREATE POLICY "public_all" ON cycles
+CREATE POLICY "owner_only" ON cycles
   FOR ALL
-  USING (true)
-  WITH CHECK (true);
-
--- PHASE 2 — uncomment when auth is required:
--- ALTER TABLE cycles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
--- DROP POLICY IF EXISTS "public_all" ON cycles;
--- CREATE POLICY "owner_only" ON cycles
---   FOR ALL
---   USING (auth.uid() = user_id)
---   WITH CHECK (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Useful indexes
