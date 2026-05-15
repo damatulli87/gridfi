@@ -2,15 +2,16 @@ import { supabase } from './supabaseClient';
 
 export const Cycle = {
   async filter(where = {}, sort = null) {
-    // RLS owner_only policy handles user filtering automatically
+    const ALLOWED_FILTERS = new Set(['status', 'node', 'mode', 'user_id']);
+    const ALLOWED_SORTS = new Set(['created_at', 'start_time', 'end_time', 'name', 'status']);
     let query = supabase.from('cycles').select('*');
     Object.entries(where).forEach(([key, value]) => {
-      query = query.eq(key, value);
+      if (ALLOWED_FILTERS.has(key)) query = query.eq(key, value);
     });
     if (sort) {
       const desc = sort.startsWith('-');
       const col = desc ? sort.slice(1) : sort;
-      query = query.order(col, { ascending: !desc });
+      if (ALLOWED_SORTS.has(col)) query = query.order(col, { ascending: !desc });
     } else {
       query = query.order('created_at', { ascending: false });
     }

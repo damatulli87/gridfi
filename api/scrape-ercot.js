@@ -5,7 +5,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://gridfi.vercel.app';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Cache-Control', 's-maxage=55, stale-while-revalidate=30');
 
   const url = 'https://www.ercot.com/content/cdr/html/current_np6788.html';
