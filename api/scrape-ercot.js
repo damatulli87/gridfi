@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://gridfi.vercel.app';
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://gridfi-pearl.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Cache-Control', 's-maxage=55, stale-while-revalidate=30');
 
