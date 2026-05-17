@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,12 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
   const [errors, setErrors] = useState({});
   const [editingMw, setEditingMw] = useState(false);
   const [mwInput, setMwInput] = useState('');
+
+  // Reset editing state whenever the parent changes power_mw (e.g. switching to Idle sets it to 0)
+  useEffect(() => {
+    setEditingMw(false);
+    setMwInput('');
+  }, [activeCycle?.power_mw]);
 
   const validate = () => {
     const e = {};
