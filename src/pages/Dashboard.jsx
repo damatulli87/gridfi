@@ -229,12 +229,17 @@ export default function Dashboard() {
 
   const handleUpdateMode = (newMode) => {
     if (!activeCycle) return;
-    const updated = { ...activeCycle, mode: newMode };
+    const isGoingIdle = newMode === 'idle';
+    const wasIdle = activeCycle.mode === 'idle';
+    // Zero MW when going idle; restore pre-idle MW when leaving idle
+    const newMw = isGoingIdle ? 0 : wasIdle ? (activeCycle._pre_idle_mw ?? activeCycle.power_mw) : activeCycle.power_mw;
+    const extra = isGoingIdle ? { _pre_idle_mw: activeCycle.power_mw } : { _pre_idle_mw: undefined };
+    const updated = { ...activeCycle, mode: newMode, power_mw: newMw, ...extra };
     setActiveCycle(updated);
     activeCycleRef.current = updated;
-    saveCycleMutation.mutate({ id: activeCycle.id, data: { mode: newMode } });
-    const label = newMode === 'charging' ? '⚡ Charging' : newMode === 'idle' ? '⏸ Idle' : '💰 Discharging';
-    toast.success(`Mode changed to ${label}`);
+    saveCycleMutation.mutate({ id: activeCycle.id, data: { mode: newMode, power_mw: newMw } });
+    const label = newMode === 'charging' ? 'Charging' : newMode === 'idle' ? 'Idle' : 'Discharging';
+    toast.success(`Mode changed to ${label}${isGoingIdle ? ' — power set to 0 MW' : ''}`);
   };
 
   const handleEnd = () => {
