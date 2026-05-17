@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Play, Pause, Square, RotateCcw, Pencil, Check, X } from "lucide-react";
 import NodePicker from './NodePicker';
 
-export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onResume, onEnd, onUpdateMw }) {
+export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onResume, onEnd, onUpdateMw, onUpdateMode }) {
   const [form, setForm] = useState({
     name: '',
     date: new Date().toISOString().split('T')[0],
@@ -125,8 +125,24 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div><span className="text-muted-foreground">Node:</span> <span className="font-mono font-medium">{activeCycle.node}</span></div>
-              <div><span className="text-muted-foreground">Mode:</span> <span className={`font-medium ${activeCycle.mode === 'charging' ? 'text-primary' : 'text-accent'}`}>{activeCycle.mode}</span></div>
               <div><span className="text-muted-foreground">Intervals:</span> <span className="font-mono font-medium">{activeCycle.intervals?.length || 0}</span></div>
+            </div>
+            {/* Mode toggle */}
+            <div>
+              <Label className="text-xs">Mode</Label>
+              <div className="flex gap-1 mt-1">
+                {['charging', 'idle', 'discharging'].map(m => (
+                  <Button
+                    key={m}
+                    size="sm"
+                    variant={activeCycle.mode === m ? 'default' : 'outline'}
+                    className={`flex-1 h-8 text-xs capitalize ${activeCycle.mode === m && m === 'charging' ? 'bg-primary' : activeCycle.mode === m && m === 'discharging' ? 'bg-accent text-accent-foreground' : ''}`}
+                    onClick={() => activeCycle.mode !== m && onUpdateMode(m)}
+                  >
+                    {m === 'charging' ? '⚡' : m === 'idle' ? '⏸' : '💰'} {m.charAt(0).toUpperCase() + m.slice(1)}
+                  </Button>
+                ))}
+              </div>
             </div>
             {/* MW Command — always visible */}
             <div>

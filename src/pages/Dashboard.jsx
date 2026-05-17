@@ -71,7 +71,9 @@ export default function Dashboard() {
             const energy = cycle.power_mw / 12;
             const costRev = cycle.mode === 'charging'
               ? -(newLmp * cycle.power_mw / 12)
-              : (newLmp * cycle.power_mw / 12);
+              : cycle.mode === 'idle'
+                ? 0
+                : (newLmp * cycle.power_mw / 12);
             const prevTotal = intervals.length > 0 ? intervals[intervals.length - 1].running_total : 0;
             const newInterval = {
               interval_num: num,
@@ -162,8 +164,11 @@ export default function Dashboard() {
     const intervals = [...(activeCycle.intervals || [])];
     const num = intervals.length + 1;
     const energy = activeCycle.power_mw / 12; // 5-min interval = MW/12 MWh
-    // Charging = cost (negative), Discharging = revenue (positive)
-    const costRev = activeCycle.mode === 'charging' ? -(lmp * activeCycle.power_mw / 12) : (lmp * activeCycle.power_mw / 12);
+    const costRev = activeCycle.mode === 'charging'
+      ? -(lmp * activeCycle.power_mw / 12)
+      : activeCycle.mode === 'idle'
+        ? 0
+        : (lmp * activeCycle.power_mw / 12);
     const prevTotal = intervals.length > 0 ? intervals[intervals.length - 1].running_total : 0;
 
     const newInterval = {
@@ -222,6 +227,16 @@ export default function Dashboard() {
     toast.success(`Power command updated to ${newMw} MW`);
   };
 
+  const handleUpdateMode = (newMode) => {
+    if (!activeCycle) return;
+    const updated = { ...activeCycle, mode: newMode };
+    setActiveCycle(updated);
+    activeCycleRef.current = updated;
+    saveCycleMutation.mutate({ id: activeCycle.id, data: { mode: newMode } });
+    const label = newMode === 'charging' ? '⚡ Charging' : newMode === 'idle' ? '⏸ Idle' : '💰 Discharging';
+    toast.success(`Mode changed to ${label}`);
+  };
+
   const handleEnd = () => {
     if (!activeCycle) return;
     const endData = { status: 'completed', end_time: new Date().toISOString() };
@@ -237,8 +252,11 @@ export default function Dashboard() {
     const intervals = [...(activeCycle.intervals || [])];
     const num = intervals.length + 1;
     const energy = activeCycle.power_mw / 12; // 5-min interval = MW/12 MWh
-    // Charging = cost (negative), Discharging = revenue (positive)
-    const costRev = activeCycle.mode === 'charging' ? -(lmp * activeCycle.power_mw / 12) : (lmp * activeCycle.power_mw / 12);
+    const costRev = activeCycle.mode === 'charging'
+      ? -(lmp * activeCycle.power_mw / 12)
+      : activeCycle.mode === 'idle'
+        ? 0
+        : (lmp * activeCycle.power_mw / 12);
     const prevTotal = intervals.length > 0 ? intervals[intervals.length - 1].running_total : 0;
 
     intervals.push({
@@ -272,7 +290,11 @@ export default function Dashboard() {
 
     // Recalculate from edited point
     const energy = edited.power_mw / 12; // MW/12 = MWh per 5-min interval
-    const costRev = edited.mode === 'charging' ? -(edited.lmp * edited.power_mw / 12) : (edited.lmp * edited.power_mw / 12);
+    const costRev = edited.mode === 'charging'
+      ? -(edited.lmp * edited.power_mw / 12)
+      : edited.mode === 'idle'
+        ? 0
+        : (edited.lmp * edited.power_mw / 12);
     intervals[idx] = { ...intervals[idx], ...edited, energy_mwh: energy, cost_revenue: costRev };
 
     // Recalc running totals
@@ -312,7 +334,8 @@ export default function Dashboard() {
   const highLmp = lmps.length ? Math.max(...lmps) : 0;
   const lowLmp = lmps.length ? Math.min(...lmps) : 0;
   const isCharging = activeCycle?.mode === 'charging';
-  const costRevLabel = isCharging ? 'Cost' : 'Revenue';
+  const isIdle = activeCycle?.mode === 'idle';
+  const costRevLabel = isCharging ? 'Cost' : isIdle ? 'Cost/Rev' : 'Revenue';
 
   // Trend
   const trend = lmps.length >= 2 ? (lmps[lmps.length - 1] > lmps[lmps.length - 2] ? 'up' : 'down') : null;
@@ -386,6 +409,7 @@ export default function Dashboard() {
               onResume={handleResume}
               onEnd={handleEnd}
               onUpdateMw={handleUpdateMw}
+              onUpdateMode={handleUpdateMode}
             />
             {activeCycle && <LmpChart intervals={intervals} />}
             {/* Record Now button */}
@@ -412,14 +436,14 @@ export default function Dashboard() {
               <StatCard
                 label={`Interval ${costRevLabel}`}
                 value={intervals.length > 0 ? `$${Math.abs(intervals[intervals.length - 1].cost_revenue || 0).toFixed(2)}` : '--'}
-                icon={isCharging ? TrendingDown : TrendingUp}
-                accent={isCharging ? 'text-primary' : 'text-accent'}
+                icon={isCharging ? TrendingDown : isIdle ? Activity : TrendingUp}
+                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
               />
               <StatCard
                 label={`Total ${costRevLabel}`}
                 value={intervals.length > 0 ? `$${Math.abs(totalCostRev).toFixed(2)}` : '--'}
                 icon={DollarSign}
-                accent={isCharging ? 'text-primary' : 'text-accent'}
+                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
               />
               <StatCard label="Avg LMP" value={avgLmp ? `$${avgLmp.toFixed(2)}` : '--'} icon={BarChart3} />
               <StatCard label="Total MWh" value={totalMwh ? totalMwh.toFixed(4) : '--'} icon={Zap} />
@@ -430,9 +454,9 @@ export default function Dashboard() {
                 label="Mode" 
                 value={activeCycle?.mode ? activeCycle.mode.charAt(0).toUpperCase() + activeCycle.mode.slice(1) : '--'} 
                 icon={Activity}
-                accent={isCharging ? 'text-primary' : 'text-accent'}
+                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
               />
-              <StatCard 
+              <StatCard
                 label="ERCOT Update" 
                 value={ercotLastUpdate ? ercotLastUpdate.replace(/.*\d{4}\s*/, '').trim() || ercotLastUpdate : '--'} 
                 icon={Wifi}

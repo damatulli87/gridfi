@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS cycles (
   name        TEXT        NOT NULL,
   date        DATE,
   node        TEXT        NOT NULL,
-  mode        TEXT        NOT NULL CHECK (mode IN ('charging', 'discharging')),
+  mode        TEXT        NOT NULL CHECK (mode IN ('charging', 'discharging', 'idle')),
   power_mw    NUMERIC     NOT NULL,
   status      TEXT        NOT NULL DEFAULT 'active'
                 CHECK (status IN ('active', 'paused', 'completed')),
