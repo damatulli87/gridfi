@@ -136,10 +136,10 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
                     key={m}
                     size="sm"
                     variant={activeCycle.mode === m ? 'default' : 'outline'}
-                    className={`flex-1 h-8 text-xs capitalize ${activeCycle.mode === m && m === 'charging' ? 'bg-primary' : activeCycle.mode === m && m === 'discharging' ? 'bg-accent text-accent-foreground' : ''}`}
+                    className={`flex-1 h-7 text-[11px] px-1 capitalize ${activeCycle.mode === m && m === 'discharging' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}`}
                     onClick={() => activeCycle.mode !== m && onUpdateMode(m)}
                   >
-                    {m === 'charging' ? '⚡' : m === 'idle' ? '⏸' : '💰'} {m.charAt(0).toUpperCase() + m.slice(1)}
+                    {m.charAt(0).toUpperCase() + m.slice(1)}
                   </Button>
                 ))}
               </div>
