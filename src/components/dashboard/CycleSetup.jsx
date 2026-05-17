@@ -158,8 +158,9 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
                   type="number"
                   step="0.1"
                   min="0"
-                  value={editingMw ? mwInput : activeCycle.power_mw}
-                  onChange={e => { setMwInput(e.target.value); setEditingMw(true); }}
+                  value={activeCycle.mode === 'idle' ? 0 : editingMw ? mwInput : activeCycle.power_mw}
+                  onChange={e => { if (activeCycle.mode !== 'idle') { setMwInput(e.target.value); setEditingMw(true); } }}
+                  disabled={activeCycle.mode === 'idle'}
                   className="h-9 text-sm font-mono"
                   placeholder="MW"
                 />
