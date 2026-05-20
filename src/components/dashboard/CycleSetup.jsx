@@ -31,7 +31,7 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
   const validate = () => {
     const e = {};
     if (!form.node) e.node = 'Node required';
-    if (form.mode !== 'idle' && (!form.power_mw || parseFloat(form.power_mw) <= 0)) e.power_mw = 'Positive MW required';
+    if (form.mode !== 'idle' && (!form.power_mw || parseFloat(form.power_mw) === 0)) e.power_mw = 'Non-zero MW required';
     if (!form.name.trim()) e.name = 'Name required';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -107,10 +107,9 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
               <Input
                 type="number"
                 step="0.1"
-                min="0"
                 value={form.power_mw}
                 onChange={e => setForm({ ...form, power_mw: e.target.value })}
-                placeholder="e.g. 20"
+                placeholder="e.g. -10 (charge) or 10 (discharge)"
                 disabled={form.mode === 'idle'}
                 className="h-9 text-sm mt-1 font-mono"
               />
@@ -159,7 +158,6 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
                 <Input
                   type="number"
                   step="0.1"
-                  min="0"
                   value={activeCycle.mode === 'idle' ? 0 : editingMw ? mwInput : activeCycle.power_mw}
                   onChange={e => { if (activeCycle.mode !== 'idle') { setMwInput(e.target.value); setEditingMw(true); } }}
                   disabled={activeCycle.mode === 'idle'}
@@ -169,7 +167,7 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
                 <Button
                   size="sm"
                   className="h-9 px-3 shrink-0"
-                  onClick={() => { const v = parseFloat(editingMw ? mwInput : activeCycle.power_mw); if (v > 0) { onUpdateMw(v); setEditingMw(false); } }}
+                  onClick={() => { const v = parseFloat(editingMw ? mwInput : activeCycle.power_mw); if (!isNaN(v) && v !== 0) { onUpdateMw(v); setEditingMw(false); } }}
                 >
                   <Check className="w-4 h-4" />
                 </Button>
