@@ -31,7 +31,7 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
   const validate = () => {
     const e = {};
     if (!form.node) e.node = 'Node required';
-    if (!form.power_mw || parseFloat(form.power_mw) <= 0) e.power_mw = 'Positive MW required';
+    if (form.mode !== 'idle' && (!form.power_mw || parseFloat(form.power_mw) <= 0)) e.power_mw = 'Positive MW required';
     if (!form.name.trim()) e.name = 'Name required';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -91,12 +91,13 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
             </div>
             <div>
               <Label className="text-xs">Mode</Label>
-              <Select value={form.mode} onValueChange={v => setForm({ ...form, mode: v })}>
+              <Select value={form.mode} onValueChange={v => setForm({ ...form, mode: v, power_mw: v === 'idle' ? '0' : v !== form.mode ? '' : form.power_mw })}>
                 <SelectTrigger className="h-9 text-sm mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="charging">⚡ Charging</SelectItem>
+                  <SelectItem value="idle">⏸ Idle</SelectItem>
                   <SelectItem value="discharging">💰 Discharging</SelectItem>
                 </SelectContent>
               </Select>
@@ -110,6 +111,7 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
                 value={form.power_mw}
                 onChange={e => setForm({ ...form, power_mw: e.target.value })}
                 placeholder="e.g. 20"
+                disabled={form.mode === 'idle'}
                 className="h-9 text-sm mt-1 font-mono"
               />
               {errors.power_mw && <p className="text-xs text-destructive mt-0.5">{errors.power_mw}</p>}
