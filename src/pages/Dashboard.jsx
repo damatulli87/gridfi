@@ -410,13 +410,13 @@ export default function Dashboard() {
               <StatCard label="Power Command" value={activeCycle ? `${activeCycle.power_mw} MW` : '--'} icon={Gauge} />
               <StatCard
                 label={`Interval ${costRevLabel}`}
-                value={intervals.length > 0 ? `$${Math.abs(intervals[intervals.length - 1].cost_revenue || 0).toFixed(2)}` : '--'}
+                value={(() => { const v = intervals[intervals.length - 1]?.cost_revenue || 0; return intervals.length > 0 ? (v < 0 ? `-$${Math.abs(v).toFixed(2)}` : `$${v.toFixed(2)}`) : '--'; })()}
                 icon={isCharging ? TrendingDown : isIdle ? Activity : TrendingUp}
                 accent={isCharging ? 'text-red-500' : isIdle ? 'text-blue-400' : 'text-green-500'}
               />
               <StatCard
                 label={`Total ${costRevLabel}`}
-                value={intervals.length > 0 ? `$${Math.abs(totalCostRev).toFixed(2)}` : '--'}
+                value={intervals.length > 0 ? (totalCostRev < 0 ? `-$${Math.abs(totalCostRev).toFixed(2)}` : `$${totalCostRev.toFixed(2)}`) : '--'}
                 icon={DollarSign}
                 accent={totalCostRev > 0 ? 'text-green-500' : totalCostRev < 0 ? 'text-red-500' : ''}
               />
