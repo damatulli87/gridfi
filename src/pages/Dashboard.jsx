@@ -213,25 +213,12 @@ export default function Dashboard() {
 
   const handleUpdateMw = (newMw) => {
     if (!activeCycle) return;
-    const updated = { ...activeCycle, power_mw: newMw };
-    setActiveCycle(updated);
-    saveCycleMutation.mutate({ id: activeCycle.id, data: { power_mw: newMw } });
-    toast.success(`Power command updated to ${newMw} MW`);
-  };
-
-  const handleUpdateMode = (newMode) => {
-    if (!activeCycle) return;
-    const isGoingIdle = newMode === 'idle';
-    const wasIdle = activeCycle.mode === 'idle';
-    // Zero MW when going idle; restore pre-idle MW when leaving idle
-    const newMw = isGoingIdle ? 0 : wasIdle ? (activeCycle._pre_idle_mw ?? activeCycle.power_mw) : activeCycle.power_mw;
-    const extra = isGoingIdle ? { _pre_idle_mw: activeCycle.power_mw } : { _pre_idle_mw: undefined };
-    const updated = { ...activeCycle, mode: newMode, power_mw: newMw, ...extra };
+    const derivedMode = newMw < 0 ? 'charging' : newMw > 0 ? 'discharging' : 'idle';
+    const updated = { ...activeCycle, power_mw: newMw, mode: derivedMode };
     setActiveCycle(updated);
     activeCycleRef.current = updated;
-    saveCycleMutation.mutate({ id: activeCycle.id, data: { mode: newMode, power_mw: newMw } });
-    const label = newMode === 'charging' ? 'Charging' : newMode === 'idle' ? 'Idle' : 'Discharging';
-    toast.success(`Mode changed to ${label}${isGoingIdle ? ' — power set to 0 MW' : ''}`);
+    saveCycleMutation.mutate({ id: activeCycle.id, data: { power_mw: newMw, mode: derivedMode } });
+    toast.success(`Power command updated to ${newMw} MW`);
   };
 
   const handleEnd = () => {
@@ -321,8 +308,9 @@ export default function Dashboard() {
   const avgLmp = lmps.length ? lmps.reduce((a, b) => a + b, 0) / lmps.length : 0;
   const highLmp = lmps.length ? Math.max(...lmps) : 0;
   const lowLmp = lmps.length ? Math.min(...lmps) : 0;
-  const isCharging = activeCycle?.mode === 'charging';
-  const isIdle = activeCycle?.mode === 'idle';
+  const activeMw = activeCycle?.power_mw ?? 0;
+  const isCharging = activeMw < 0;
+  const isIdle = activeMw === 0;
   const costRevLabel = isCharging ? 'Cost' : isIdle ? 'Cost/Rev' : 'Revenue';
 
   // Trend
@@ -397,7 +385,6 @@ export default function Dashboard() {
               onResume={handleResume}
               onEnd={handleEnd}
               onUpdateMw={handleUpdateMw}
-              onUpdateMode={handleUpdateMode}
             />
             {activeCycle && <LmpChart intervals={intervals} />}
             {/* Record Now button */}
@@ -425,25 +412,19 @@ export default function Dashboard() {
                 label={`Interval ${costRevLabel}`}
                 value={intervals.length > 0 ? `$${Math.abs(intervals[intervals.length - 1].cost_revenue || 0).toFixed(2)}` : '--'}
                 icon={isCharging ? TrendingDown : isIdle ? Activity : TrendingUp}
-                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
+                accent={isCharging ? 'text-red-500' : isIdle ? 'text-blue-400' : 'text-green-500'}
               />
               <StatCard
                 label={`Total ${costRevLabel}`}
                 value={intervals.length > 0 ? `$${Math.abs(totalCostRev).toFixed(2)}` : '--'}
                 icon={DollarSign}
-                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
+                accent={totalCostRev > 0 ? 'text-green-500' : totalCostRev < 0 ? 'text-red-500' : ''}
               />
               <StatCard label="Avg LMP" value={avgLmp ? `$${avgLmp.toFixed(2)}` : '--'} icon={BarChart3} />
               <StatCard label="Total MWh" value={totalMwh ? totalMwh.toFixed(4) : '--'} icon={Zap} />
               <StatCard label="Intervals" value={intervals.length || '0'} icon={Activity} />
               <StatCard label="Start Time" value={activeCycle?.start_time ? new Date(activeCycle.start_time).toLocaleTimeString() : '--'} icon={Clock} sub={activeCycle?.start_time ? Intl.DateTimeFormat().resolvedOptions().timeZone : null} />
               <StatCard label="Duration" value={cycleDuration} icon={Timer} />
-              <StatCard 
-                label="Mode" 
-                value={activeCycle?.mode ? activeCycle.mode.charAt(0).toUpperCase() + activeCycle.mode.slice(1) : '--'} 
-                icon={Activity}
-                accent={isCharging ? 'text-primary' : isIdle ? 'text-muted-foreground' : 'text-accent'}
-              />
               <StatCard
                 label="ERCOT Update" 
                 value={ercotLastUpdate ? ercotLastUpdate.replace(/.*\d{4}\s*/, '').trim() || ercotLastUpdate : '--'} 
@@ -463,7 +444,6 @@ export default function Dashboard() {
             {/* Interval Table */}
             <IntervalTable
               intervals={intervals}
-              mode={activeCycle?.mode || 'charging'}
               onAdd={activeCycle?.status === 'active' ? handleAddManual : null}
               onEdit={activeCycle ? handleEditInterval : null}
               onDelete={activeCycle ? handleDeleteInterval : null}

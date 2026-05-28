@@ -4,16 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Pause, Square, RotateCcw, Pencil, Check, X } from "lucide-react";
+import { Play, Pause, Square, RotateCcw, Check } from "lucide-react";
 import NodePicker from './NodePicker';
 
-export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onResume, onEnd, onUpdateMw, onUpdateMode }) {
+export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onResume, onEnd, onUpdateMw }) {
   const [form, setForm] = useState({
     name: '',
     date: new Date().toISOString().split('T')[0],
     node: '',
-    mode: 'charging',
     power_mw: '',
     notes: ''
   });
@@ -22,7 +20,6 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
   const [editingMw, setEditingMw] = useState(false);
   const [mwInput, setMwInput] = useState('');
 
-  // Reset editing state whenever the parent changes power_mw (e.g. switching to Idle sets it to 0)
   useEffect(() => {
     setEditingMw(false);
     setMwInput('');
@@ -31,7 +28,7 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
   const validate = () => {
     const e = {};
     if (!form.node) e.node = 'Node required';
-    if (form.mode !== 'idle' && (!form.power_mw || parseFloat(form.power_mw) === 0)) e.power_mw = 'Non-zero MW required';
+    if (form.power_mw === '' || isNaN(parseFloat(form.power_mw))) e.power_mw = 'MW value required';
     if (!form.name.trim()) e.name = 'Name required';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -39,9 +36,12 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
 
   const handleStart = () => {
     if (!validate()) return;
+    const mw = parseFloat(form.power_mw);
+    const mode = mw < 0 ? 'charging' : mw > 0 ? 'discharging' : 'idle';
     onStart({
       ...form,
-      power_mw: parseFloat(form.power_mw),
+      mode,
+      power_mw: mw,
       start_time: new Date().toISOString(),
       status: 'active',
       intervals: []
@@ -90,27 +90,13 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
               {errors.node && <p className="text-xs text-destructive mt-0.5">{errors.node}</p>}
             </div>
             <div>
-              <Label className="text-xs">Mode</Label>
-              <Select value={form.mode} onValueChange={v => setForm({ ...form, mode: v, power_mw: v === 'idle' ? '0' : v !== form.mode ? '' : form.power_mw })}>
-                <SelectTrigger className="h-9 text-sm mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="charging">⚡ Charging</SelectItem>
-                  <SelectItem value="idle">⏸ Idle</SelectItem>
-                  <SelectItem value="discharging">💰 Discharging</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label className="text-xs">Power Command (MW)</Label>
               <Input
                 type="number"
                 step="0.1"
                 value={form.power_mw}
                 onChange={e => setForm({ ...form, power_mw: e.target.value })}
-                placeholder="e.g. -10 (charge) or 10 (discharge)"
-                disabled={form.mode === 'idle'}
+                placeholder="Negative = charge, 0 = idle, Positive = discharge"
                 className="h-9 text-sm mt-1 font-mono"
               />
               {errors.power_mw && <p className="text-xs text-destructive mt-0.5">{errors.power_mw}</p>}
@@ -134,45 +120,26 @@ export default function CycleSetup({ nodes, activeCycle, onStart, onPause, onRes
               <div><span className="text-muted-foreground">Node:</span> <span className="font-mono font-medium">{activeCycle.node}</span></div>
               <div><span className="text-muted-foreground">Intervals:</span> <span className="font-mono font-medium">{activeCycle.intervals?.length || 0}</span></div>
             </div>
-            {/* Mode toggle */}
-            <div>
-              <Label className="text-xs">Mode</Label>
-              <div className="flex gap-1 mt-1">
-                {['charging', 'idle', 'discharging'].map(m => (
-                  <Button
-                    key={m}
-                    size="sm"
-                    variant={activeCycle.mode === m ? 'default' : 'outline'}
-                    className={`flex-1 h-7 text-[11px] px-1 capitalize ${activeCycle.mode === m && m === 'discharging' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}`}
-                    onClick={() => activeCycle.mode !== m && onUpdateMode(m)}
-                  >
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            {/* MW Command — always visible */}
             <div>
               <Label className="text-xs">Power Command (MW)</Label>
               <div className="flex items-center gap-2 mt-1">
                 <Input
                   type="number"
                   step="0.1"
-                  value={activeCycle.mode === 'idle' ? 0 : editingMw ? mwInput : activeCycle.power_mw}
-                  onChange={e => { if (activeCycle.mode !== 'idle') { setMwInput(e.target.value); setEditingMw(true); } }}
-                  disabled={activeCycle.mode === 'idle'}
+                  value={editingMw ? mwInput : activeCycle.power_mw}
+                  onChange={e => { setMwInput(e.target.value); setEditingMw(true); }}
                   className="h-9 text-sm font-mono"
                   placeholder="MW"
                 />
                 <Button
                   size="sm"
                   className="h-9 px-3 shrink-0"
-                  onClick={() => { const v = parseFloat(editingMw ? mwInput : activeCycle.power_mw); if (!isNaN(v) && v !== 0) { onUpdateMw(v); setEditingMw(false); } }}
+                  onClick={() => { const v = parseFloat(editingMw ? mwInput : activeCycle.power_mw); if (!isNaN(v)) { onUpdateMw(v); setEditingMw(false); } }}
                 >
                   <Check className="w-4 h-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Cost/Rev = LMP × MW ÷ 12 per interval</p>
+              <p className="text-xs text-muted-foreground mt-1">Negative = charge (loss) · 0 = idle · Positive = discharge (profit)</p>
             </div>
             <div className="flex gap-2 pt-2">
               {isActive ? (
