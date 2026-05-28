@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://gridfi-pearl.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Cache-Control', 's-maxage=55, stale-while-revalidate=30');
+  res.setHeader('Cache-Control', 's-maxage=20, stale-while-revalidate=10');
 
   const url = 'https://www.ercot.com/content/cdr/html/current_np6788.html';
   let html;

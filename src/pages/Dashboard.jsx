@@ -104,7 +104,7 @@ export default function Dashboard() {
   // Auto-refresh ERCOT every 30s
   useEffect(() => {
     fetchErcot();
-    intervalRef.current = setInterval(fetchErcot, 30000);
+    intervalRef.current = setInterval(fetchErcot, 15000);
     return () => clearInterval(intervalRef.current);
   }, []);
 
