@@ -56,15 +56,14 @@ export default function Dashboard() {
           if (cycle.status === 'active') {
             const existingIntervals = cycle.intervals || [];
             const lastInterval = existingIntervals[existingIntervals.length - 1];
-            const MIN_AUTO_INTERVAL_MS = 4 * 60 * 1000;
-            // DB timestamp survives page refreshes; ref catches in-session parallel fetches
-            const msSinceDB = lastInterval
-              ? Date.now() - new Date(lastInterval.timestamp).getTime()
-              : Infinity;
+            const lastRecordedLmp = lastInterval?.lmp ?? null;
+            // Record when price changes from last recorded value (or on first interval)
+            const priceChanged = lastRecordedLmp === null || newLmp !== lastRecordedLmp;
+            // 30-second debounce prevents double-firing within the same ERCOT publish cycle
             const msSinceRef = lastAutoRecordedAt.current
               ? Date.now() - lastAutoRecordedAt.current
               : Infinity;
-            if (Math.min(msSinceDB, msSinceRef) >= MIN_AUTO_INTERVAL_MS) {
+            if (priceChanged && msSinceRef >= 30 * 1000) {
             lastAutoRecordedAt.current = Date.now();
             const intervals = [...(cycle.intervals || [])];
             const num = intervals.length + 1;
